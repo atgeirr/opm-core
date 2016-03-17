@@ -18,8 +18,10 @@
 */
 
 #include "EclipseReader.hpp"
+
+#include <opm/common/data/SimulationDataContainer.hpp>
 #include <opm/core/simulator/WellState.hpp>
-#include <opm/core/simulator/BlackoilState.hpp>
+//#include <opm/core/simulator/BlackoilState.hpp>
 #include <opm/core/utility/Units.hpp>
 #include <opm/core/grid/GridHelpers.hpp>
 #include <opm/core/io/eclipse/EclipseIOUtil.hpp>
@@ -55,9 +57,9 @@ namespace Opm
             // factor and offset from the temperature values given in the deck to Kelvin
             double scaling = eclipse_state->getDeckUnitSystem().parse("Temperature")->getSIScaling();
             double offset  = eclipse_state->getDeckUnitSystem().parse("Temperature")->getSIOffset();
-
-            for (size_t index = 0; index < simulator_state.temperature().size(); ++index) {
-                simulator_state.temperature()[index] = unit::convert::from((double)temperature_data[index] - offset, scaling);
+            auto& state_temperature = simulator_state.getCellData("TEMPERATURE");
+            for (size_t index = 0; index < state_temperature.size(); ++index) {
+                state_temperature[index] = unit::convert::from((double)temperature_data[index] - offset, scaling);
             }
           } else {
               throw std::runtime_error("Read of restart file: File does not contain TEMP data\n");
@@ -81,8 +83,9 @@ namespace Opm
 
             float* pressure_data = ecl_kw_get_float_ptr(pressure_kw);
             const double deck_pressure_unit = (eclipse_state->getDeckUnitSystem().getType() == UnitSystem::UNIT_TYPE_METRIC) ? Opm::unit::barsa : Opm::unit::psia;
-            for (size_t index = 0; index < simulator_state.pressure().size(); ++index) {
-                simulator_state.pressure()[index] = unit::convert::from((double)pressure_data[index], deck_pressure_unit);
+            auto& state_pressure = simulator_state.getCellData("PRESSURE");
+            for (size_t index = 0; index < state_pressure.size(); ++index) {
+                state_pressure[index] = unit::convert::from((double)pressure_data[index], deck_pressure_unit);
             }
         } else {
             throw std::runtime_error("Read of restart file: File does not contain PRESSURE data\n");
@@ -98,13 +101,14 @@ namespace Opm
         float* sgas_data = NULL;
         float* swat_data = NULL;
 
+        auto& state_saturation = simulator_state.getCellData("SATURATION");
         if (phaseUsage.phase_used[BlackoilPhases::Aqua]) {
             const char* swat = "SWAT";
             if (ecl_file_has_kw(file_type, swat)) {
                 ecl_kw_type* swat_kw = ecl_file_iget_named_kw(file_type , swat, 0);
                 swat_data = ecl_kw_get_float_ptr(swat_kw);
                 std::vector<double> swat_datavec(&swat_data[0], &swat_data[numcells]);
-                EclipseIOUtil::addToStripedData(swat_datavec, simulator_state.saturation(), phaseUsage.phase_pos[BlackoilPhases::Aqua], phaseUsage.num_phases);
+                EclipseIOUtil::addToStripedData(swat_datavec, state_saturation, phaseUsage.phase_pos[BlackoilPhases::Aqua], phaseUsage.num_phases);
             } else {
                 std::string error_str = "Restart file is missing SWAT data!\n";
                 throw std::runtime_error(error_str);
@@ -117,7 +121,7 @@ namespace Opm
                 ecl_kw_type* sgas_kw = ecl_file_iget_named_kw(file_type , sgas, 0);
                 sgas_data = ecl_kw_get_float_ptr(sgas_kw);
                 std::vector<double> sgas_datavec(&sgas_data[0], &sgas_data[numcells]);
-                EclipseIOUtil::addToStripedData(sgas_datavec, simulator_state.saturation(), phaseUsage.phase_pos[BlackoilPhases::Vapour], phaseUsage.num_phases);
+                EclipseIOUtil::addToStripedData(sgas_datavec, state_saturation, phaseUsage.phase_pos[BlackoilPhases::Vapour], phaseUsage.num_phases);
             } else {
                 std::string error_str = "Restart file is missing SGAS data!\n";
                 throw std::runtime_error(error_str);
@@ -128,7 +132,7 @@ namespace Opm
 
     static void restoreRSandRV(const ecl_file_type* file_type,
                                SimulationConfigConstPtr sim_config,
-                               int numcells,
+                               int /* numcells */,
                                SimulationDataContainer& simulator_state) {
 
         if (sim_config->hasDISGAS()) {
@@ -136,7 +140,7 @@ namespace Opm
             if (ecl_file_has_kw(file_type, RS)) {
                 ecl_kw_type* rs_kw = ecl_file_iget_named_kw(file_type, RS, 0);
                 float* rs_data = ecl_kw_get_float_ptr(rs_kw);
-                auto& rs = simulator_state.getCellData( BlackoilState::GASOILRATIO );
+                auto& rs = simulator_state.getCellData("GASOILRATIO");
                 for (int i = 0; i < ecl_kw_get_size( rs_kw ); i++) {
                     rs[i] = rs_data[i];
                 }
@@ -150,7 +154,7 @@ namespace Opm
             if (ecl_file_has_kw(file_type, RV)) {
                 ecl_kw_type* rv_kw = ecl_file_iget_named_kw(file_type, RV, 0);
                 float* rv_data = ecl_kw_get_float_ptr(rv_kw);
-                auto& rv = simulator_state.getCellData( BlackoilState::RV );
+                auto& rv = simulator_state.getCellData("RV");
                 for (int i = 0; i < ecl_kw_get_size( rv_kw ); i++) {
                     rv[i] = rv_data[i];
                 }
@@ -179,7 +183,7 @@ namespace Opm
                 restorePressureData(file_type, eclipseState, numcells, simulator_state);
                 restoreTemperatureData(file_type, eclipseState, numcells, simulator_state);
                 restoreSaturation(file_type, phaseUsage, numcells, simulator_state);
-                if (simulator_state.hasCellData( BlackoilState::RV )) {
+                if (simulator_state.hasCellData("RV")) {
                     SimulationConfigConstPtr sim_config = eclipseState->getSimulationConfig();
                     restoreRSandRV(file_type, sim_config, numcells, simulator_state );
                 } 
