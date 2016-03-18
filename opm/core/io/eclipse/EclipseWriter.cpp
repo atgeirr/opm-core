@@ -1349,14 +1349,14 @@ void EclipseWriter::writeTimeStep(const SimulatorTimerInterface& timer,
 
 
         // Write RS - Dissolved GOR
-        if (reservoirState.hasCellData( BlackoilState::GASOILRATIO )) {
-            const std::vector<double>& rs = reservoirState.getCellData( BlackoilState::GASOILRATIO );
+        if (reservoirState.hasCellData("GASOILRATIO")) {
+            const std::vector<double>& rs = reservoirState.getCellData("GASOILRATIO");
             sol.add(EclipseWriterDetails::Keyword<float>("RS", rs));
         }
 
         // Write RV - Volatilized oil/gas ratio
-        if (reservoirState.hasCellData( BlackoilState::RV )) {
-            const std::vector<double>& rv = reservoirState.getCellData( BlackoilState::RV );
+        if (reservoirState.hasCellData("RV")) {
+            const std::vector<double>& rv = reservoirState.getCellData("RV");
             sol.add(EclipseWriterDetails::Keyword<float>("RV", rv));
         }
     }
