@@ -24,11 +24,66 @@
 
 namespace Opm
 {
+
+    /// A state class suitable for incompressible two-phase
+    /// computations.
     class TwophaseState : public SimulationDataContainer
     {
     public:
         TwophaseState(size_t num_cells , size_t num_faces);
+        TwophaseState(const TwophaseState& other);
+        TwophaseState& operator=(const TwophaseState& other);
+
+        std::vector<double>& pressure  ();
+        std::vector<double>& saturation();
+        std::vector<double>& faceflux  ();
+
+        const std::vector<double>& pressure  () const;
+        const std::vector<double>& saturation() const;
+        const std::vector<double>& faceflux  () const;
+
+    private:
+        void setReferencePointers();
+
+        std::vector<double>* pressure_ref_;
+        std::vector<double>* saturation_ref_;
+        std::vector<double>* faceflux_ref_;
     };
+
+
+
+    // Inline definition of accessor methods.
+
+    inline std::vector<double>& TwophaseState::pressure()
+    {
+        return *pressure_ref_;
+    }
+
+    inline std::vector<double>& TwophaseState::saturation()
+    {
+        return *saturation_ref_;
+    }
+
+    inline std::vector<double>& TwophaseState::faceflux()
+    {
+        return *faceflux_ref_;
+    }
+
+    const inline std::vector<double>& TwophaseState::pressure() const
+    {
+        return *pressure_ref_;
+    }
+
+    const inline std::vector<double>& TwophaseState::saturation() const
+    {
+        return *saturation_ref_;
+    }
+
+    const inline std::vector<double>& TwophaseState::faceflux() const
+    {
+        return *faceflux_ref_;
+    }
+
 
 }
 

@@ -22,12 +22,38 @@
 namespace Opm
 {
 
-    TwophaseState::TwophaseState(size_t num_cells , size_t num_faces) :
-        SimulationDataContainer( num_cells , num_faces , 2 )
+    TwophaseState::TwophaseState(size_t num_cells , size_t num_faces)
+        : SimulationDataContainer( num_cells , num_faces , 2 )
     {
+        registerCellData("PRESSURE", 1, 0.0);
+        registerCellData("SATURATION", 2, 0.0);
+        registerFaceData("FACEFLUX", 1, 0.0);
+
+        setReferencePointers();
     }
 
 
+    TwophaseState::TwophaseState(const TwophaseState& other)
+        : SimulationDataContainer(other)
+    {
+        setReferencePointers();
+    }
+
+
+    TwophaseState& TwophaseState::operator=(const TwophaseState& other)
+    {
+        SimulationDataContainer::operator=(other);
+        setReferencePointers();
+        return *this;
+    }
+
+
+    void TwophaseState::setReferencePointers()
+    {
+        pressure_ref_   = &getCellData("PRESSURE");
+        saturation_ref_ = &getCellData("SATURATION");
+        faceflux_ref_   = &getFaceData("FACEFLUX");
+    }
 }
 
 

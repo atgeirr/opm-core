@@ -34,22 +34,133 @@ namespace Opm
     class BlackoilState : public SimulationDataContainer
     {
     public:
-        static const std::string GASOILRATIO;
-        static const std::string RV;
-        static const std::string SURFACEVOL;
+        BlackoilState(size_t num_cells, size_t num_faces, size_t num_phases);
+        BlackoilState(const BlackoilState& other);
+        BlackoilState& operator=(const BlackoilState& other);
 
-        BlackoilState(size_t num_cells , size_t num_faces, size_t num_phases);
+        std::vector<double>& pressure    ();
+        std::vector<double>& temperature ();
+        std::vector<double>& saturation  ();
+        std::vector<double>& surfacevol  ();
+        std::vector<double>& gasoilratio ();
+        std::vector<double>& rv          ();
+        std::vector<double>& facepressure();
+        std::vector<double>& faceflux    ();
 
+        const std::vector<double>& pressure    () const;
+        const std::vector<double>& temperature () const;
+        const std::vector<double>& saturation  () const;
+        const std::vector<double>& surfacevol  () const;
+        const std::vector<double>& gasoilratio () const;
+        const std::vector<double>& rv          () const;
+        const std::vector<double>& facepressure() const;
+        const std::vector<double>& faceflux    () const;
 
-        std::vector<double>& surfacevol  () { return getCellData("SURFACEVOL");  }
-        std::vector<double>& gasoilratio () { return getCellData(GASOILRATIO); }
-        std::vector<double>& rv ()          { return getCellData(RV);          }
-
-        const std::vector<double>& surfacevol  () const { return getCellData("SURFACEVOL");  }
-        const std::vector<double>& gasoilratio () const { return getCellData("GASOILRATIO"); }
-        const std::vector<double>& rv ()          const { return getCellData(RV);          }
-
+    private:
+        void setReferencePointers();
+        std::vector<double>* pressure_ref_;
+        std::vector<double>* temperature_ref_;
+        std::vector<double>* saturation_ref_;
+        std::vector<double>* surfacevol_ref_;
+        std::vector<double>* gasoilratio_ref_;
+        std::vector<double>* rv_ref_;
+        std::vector<double>* facepressure_ref_;
+        std::vector<double>* faceflux_ref_;
     };
+
+
+
+    // Inline definition of accessor methods.
+
+    // Non-const versions.
+
+    inline std::vector<double>& BlackoilState::pressure()
+    {
+        return *pressure_ref_;
+    }
+
+    inline std::vector<double>& BlackoilState::temperature()
+    {
+        return *temperature_ref_;
+    }
+
+    inline std::vector<double>& BlackoilState::saturation()
+    {
+        return *saturation_ref_;
+    }
+
+    inline std::vector<double>& BlackoilState::surfacevol()
+    {
+        return *surfacevol_ref_;
+    }
+
+    inline std::vector<double>& BlackoilState::gasoilratio()
+    {
+        return *gasoilratio_ref_;
+    }
+
+    inline std::vector<double>& BlackoilState::rv()
+    {
+        return *rv_ref_;
+    }
+
+    inline std::vector<double>& BlackoilState::facepressure()
+    {
+        return *facepressure_ref_;
+    }
+
+    inline std::vector<double>& BlackoilState::faceflux()
+    {
+        return *faceflux_ref_;
+    }
+
+    // Const versions.
+
+    inline const std::vector<double>& BlackoilState::pressure() const
+    {
+        return *pressure_ref_;
+    }
+
+    inline const std::vector<double>& BlackoilState::temperature() const
+    {
+        return *temperature_ref_;
+    }
+
+    inline const std::vector<double>& BlackoilState::saturation() const
+    {
+        return *saturation_ref_;
+    }
+
+    inline const std::vector<double>& BlackoilState::surfacevol() const
+    {
+        return *surfacevol_ref_;
+    }
+
+    inline const std::vector<double>& BlackoilState::gasoilratio() const
+    {
+        return *gasoilratio_ref_;
+    }
+
+    inline const std::vector<double>& BlackoilState::rv() const
+    {
+        return *rv_ref_;
+    }
+
+    inline const std::vector<double>& BlackoilState::facepressure() const
+    {
+        return *facepressure_ref_;
+    }
+
+    inline const std::vector<double>& BlackoilState::faceflux() const
+    {
+        return *faceflux_ref_;
+    }
+
+
+
+
+
+
 } // namespace Opm
 
 
