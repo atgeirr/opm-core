@@ -367,8 +367,11 @@ namespace Opm
                               CCI begin_cell_centroids,
                               State& state)
         {
+            if (!state.hasFaceData("FACEPRESSURE")) {
+                return;
+            }
             const std::vector<double>& cp = state.pressure();
-            std::vector<double>& fp = state.facepressure();
+            std::vector<double>& fp = state.getFaceData("FACEPRESSURE");
             for (int f = 0; f < number_of_faces; ++f) {
                 double dist[2] = { 0.0, 0.0 };
                 double press[2] = { 0.0, 0.0 };
@@ -434,7 +437,11 @@ namespace Opm
                         const parameter::ParameterGroup& param,
                         const double gravity,
                         State& state)
-{
+    {
+        static_cast<void>(number_of_faces);
+        static_cast<void>(face_cells);
+        static_cast<void>(begin_face_centroids);
+
         const int num_phases = props.numPhases();
         if (num_phases != 2) {
             OPM_THROW(std::runtime_error, "initStateTwophaseBasic(): currently handling only two-phase scenarios.");
@@ -523,10 +530,6 @@ namespace Opm
             initHydrostaticPressure(number_of_cells, begin_cell_centroids, dimensions,
                                     dens, ref_z, gravity, ref_z, ref_p, state);
         }
-
-        // Finally, init face pressures.
-        initFacePressure(dimensions, number_of_faces, face_cells, begin_face_centroids,
-                         begin_cell_centroids, state);
     }
 
 
