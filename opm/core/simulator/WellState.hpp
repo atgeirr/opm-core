@@ -57,6 +57,7 @@ namespace Opm
                 thp_.resize(nw);
                 temperature_.resize(nw, 273.15 + 20); // standard temperature for now
                 wellrates_.resize(nw * np, 0.0);
+                const auto& reservoir_pressure = state.getCellData("PRESSURE");
                 for (int w = 0; w < nw; ++w) {
                     assert((wells->type[w] == INJECTOR) || (wells->type[w] == PRODUCER));
                     const WellControls* ctrl = wells->ctrls[w];
@@ -87,7 +88,7 @@ namespace Opm
                             bhp_[w] = well_controls_get_current_target( ctrl );
                         } else {
                             const int first_cell = wells->well_cells[wells->well_connpos[w]];
-                            bhp_[w] = state.pressure()[first_cell];
+                            bhp_[w] = reservoir_pressure[first_cell];
                         }
                         // 3. Thp: assign thp equal to thp control, if applicable,
                         //    otherwise assign equal to bhp value.
@@ -128,7 +129,7 @@ namespace Opm
                                     } else {
                                         const int first_cell = wells->well_cells[wells->well_connpos[w]];
                                         const double safety_factor = (wells->type[w] == INJECTOR) ? 1.01 : 0.99;
-                                        bhp_[w] = safety_factor*state.pressure()[first_cell];
+                                        bhp_[w] = safety_factor*reservoir_pressure[first_cell];
                         }
 
                         // 3. Thp: assign thp equal to thp control, if applicable,
